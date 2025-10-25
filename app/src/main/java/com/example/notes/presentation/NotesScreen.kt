@@ -3,13 +3,30 @@ package com.example.notes.presentation
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.notes.domain.model.Note
 import com.example.notes.presentation.components.NoteCard
@@ -28,11 +46,13 @@ import com.example.notes.presentation.components.RadialActionMenu
 fun NotesScreen() {
 
     val notes = remember { mutableStateListOf<Note>() }
+    val categories = remember { mutableStateListOf<String>() }
+
     var selectedNote by remember { mutableStateOf<Note?>(null) }
     var menuPosition by remember { mutableStateOf(Offset.Zero) }
     var menuExpanded by remember { mutableStateOf(false) }
 
-    fun getDefaultNotes(): List<Note> =
+    fun getNotes(): List<Note> =
         listOf(
             Note(
                 id = 1,
@@ -61,20 +81,61 @@ fun NotesScreen() {
             )
         )
 
+    fun getCategories(): List<String> = listOf("Work", "Personal", "Ideas")
+
     LaunchedEffect(Unit) {
-        notes.addAll(getDefaultNotes())
+        notes.addAll(getNotes())
+        categories.addAll(getCategories())
     }
 
     Scaffold { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = { },
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        focusedElevation = 0.dp,
+                        hoveredElevation = 0.dp
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null
+                    )
+                }
+                categories.forEach { category ->
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(
+                        onClick = { },
+                        colors = ButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        Text(text = category)
+                    }
+                }
+            }
             LazyVerticalStaggeredGrid(
                 columns = StaggeredGridCells.Fixed(2),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    top = paddingValues.calculateTopPadding() + 16.dp,
-                    end = 16.dp,
-                    bottom = paddingValues.calculateBottomPadding() + 16.dp
-                ),
+                contentPadding = PaddingValues(16.dp),
                 verticalItemSpacing = 16.dp,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -102,23 +163,23 @@ fun NotesScreen() {
                     )
                 }
             }
-            RadialActionMenu(
-                expanded = menuExpanded,
-                position = menuPosition,
-                onPinClick = { },
-                onEditClick = { },
-                onDeleteClick = {
-                    selectedNote?.let {
-                        notes.remove(it)
-                        menuExpanded = false
-                        selectedNote = null
-                    }
-                },
-                onDismiss = {
+        }
+        RadialActionMenu(
+            expanded = menuExpanded,
+            position = menuPosition,
+            onPinClick = { },
+            onEditClick = { },
+            onDeleteClick = {
+                selectedNote?.let {
+                    notes.remove(it)
                     menuExpanded = false
                     selectedNote = null
                 }
-            )
-        }
+            },
+            onDismiss = {
+                menuExpanded = false
+                selectedNote = null
+            }
+        )
     }
 }
