@@ -1,4 +1,4 @@
-package com.example.notes.presentation.components
+package com.example.notes.presentation.notelist.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

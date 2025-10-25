@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.notes.presentation.NotesScreen
+import androidx.navigation.compose.rememberNavController
+import com.example.notes.presentation.navigation.AppNavGraph
 import com.example.notes.ui.theme.NotesTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,7 +17,8 @@ class MainActivity : ComponentActivity() {
                 darkTheme = false,
                 dynamicColor = false
             ) {
-                NotesScreen()
+                val navController = rememberNavController()
+                AppNavGraph(navController)
             }
         }
     }

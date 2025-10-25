@@ -1,4 +1,4 @@
-package com.example.notes.presentation
+package com.example.notes.presentation.notelist
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -39,14 +39,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.notes.domain.model.Note
-import com.example.notes.presentation.components.NoteCard
-import com.example.notes.presentation.components.RadialActionMenu
+import com.example.notes.presentation.notelist.components.NoteCard
+import com.example.notes.presentation.notelist.components.RadialActionMenu
 
 @Composable
-fun NotesScreen() {
-
-    val notes = remember { mutableStateListOf<Note>() }
-    val categories = remember { mutableStateListOf<String>() }
+fun NoteListScreen(
+    onEditNote: (Int?) -> Unit
+) {
+    val noteList = remember { mutableStateListOf<Note>() }
+    val categoryList = remember { mutableStateListOf<String>() }
 
     var selectedNote by remember { mutableStateOf<Note?>(null) }
     var menuPosition by remember { mutableStateOf(Offset.Zero) }
@@ -84,8 +85,8 @@ fun NotesScreen() {
     fun getCategories(): List<String> = listOf("Work", "Personal", "Ideas")
 
     LaunchedEffect(Unit) {
-        notes.addAll(getNotes())
-        categories.addAll(getCategories())
+        noteList.addAll(getNotes())
+        categoryList.addAll(getCategories())
     }
 
     Scaffold { paddingValues ->
@@ -101,7 +102,7 @@ fun NotesScreen() {
                     .padding(16.dp)
             ) {
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onEditNote(null) },
                     shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -117,7 +118,7 @@ fun NotesScreen() {
                         contentDescription = null
                     )
                 }
-                categories.forEach { category ->
+                categoryList.forEach { category ->
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(
                         onClick = { },
@@ -140,13 +141,13 @@ fun NotesScreen() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(
-                    count = notes.size,
+                    count = noteList.size,
                     key = { index ->
-                        notes[index].id
+                        noteList[index].id
                     }
                 ) { index ->
                     NoteCard(
-                        note = notes[index],
+                        note = noteList[index],
                         onClick = { offset, note ->
                             selectedNote = note
                             menuPosition = offset
@@ -168,12 +169,18 @@ fun NotesScreen() {
             expanded = menuExpanded,
             position = menuPosition,
             onPinClick = { },
-            onEditClick = { },
-            onDeleteClick = {
+            onEditClick = {
                 selectedNote?.let {
-                    notes.remove(it)
                     menuExpanded = false
                     selectedNote = null
+                    onEditNote(it.id)
+                }
+            },
+            onDeleteClick = {
+                selectedNote?.let {
+                    menuExpanded = false
+                    selectedNote = null
+                    noteList.remove(it)
                 }
             },
             onDismiss = {

@@ -1,4 +1,4 @@
-package com.example.notes.presentation.components
+package com.example.notes.presentation.notelist.components
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
