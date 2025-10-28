@@ -74,15 +74,14 @@ fun ProductListScreen() {
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = {
-                if (productName.isNotBlank()) {
-                    val productInfoWithKey = "${System.currentTimeMillis()} | $productName - $productRating"
-                    productList.add(productInfoWithKey)
-                    prefs.edit {
-                        putStringSet("Data", productList.toSet())
-                    }
-                    productName = ""
-                    productRating = 0
+                if (productName.isBlank()) return@Button
+                val productInfoWithKey = "${System.currentTimeMillis()} | $productName - $productRating"
+                productList.add(productInfoWithKey)
+                prefs.edit {
+                    putStringSet("Data", productList.toSet())
                 }
+                productName = ""
+                productRating = 0
             }
         ) {
             Text("Save")
