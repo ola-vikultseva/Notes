@@ -29,14 +29,12 @@ import kotlin.math.sin
 
 @Composable
 fun RadialActionMenu(
-    expanded: Boolean,
     position: Offset,
     onPinClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    if (!expanded) return
     val density = LocalDensity.current
     val menuSizePx = with(density) { 180.dp.toPx() }
     Box(

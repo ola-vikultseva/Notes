@@ -69,8 +69,7 @@ fun NoteCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-//                text = note.title,
-                text = "Note #${note.id}",
+                text = note.title,
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(Modifier.height(8.dp))

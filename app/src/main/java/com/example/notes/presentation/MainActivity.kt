@@ -1,13 +1,14 @@
-package com.example.notes
+package com.example.notes.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.notes.presentation.ProductListScreen
-import com.example.notes.presentation.TestScreen
-import com.example.notes.ui.theme.NotesTheme
+import com.example.notes.presentation.navigation.AppNavGraph
+import com.example.notes.presentation.theme.NotesTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,10 +18,7 @@ class MainActivity : ComponentActivity() {
                 darkTheme = false,
                 dynamicColor = false
             ) {
-                TestScreen()
-//                ProductListScreen()
-//                val navController = rememberNavController()
-//                AppNavGraph(navController)
+                AppNavGraph()
             }
         }
     }
