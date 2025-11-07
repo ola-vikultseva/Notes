@@ -3,7 +3,6 @@ package com.example.notes.presentation.notelist
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.notes.presentation.notelist.components.NoteCard
@@ -57,7 +55,6 @@ fun NoteListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
         ) {
             Row(
                 modifier = Modifier
@@ -98,6 +95,7 @@ fun NoteListScreen(
 //                }
             }
             LazyVerticalStaggeredGrid(
+                modifier = Modifier.fillMaxSize(),
                 columns = StaggeredGridCells.Fixed(2),
                 contentPadding = PaddingValues(16.dp),
                 verticalItemSpacing = 16.dp,
@@ -137,7 +135,7 @@ fun NoteListScreen(
                     showMenu = false
                 },
                 onDeleteClick = {
-                    viewModel.onDeleteNote(selectedNoteId)
+                    viewModel.deleteNote(selectedNoteId)
                     showMenu = false
                 },
                 onDismiss = { showMenu = false }

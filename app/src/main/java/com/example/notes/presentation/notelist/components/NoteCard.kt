@@ -61,9 +61,9 @@ fun NoteCard(
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, Color.LightGray),
         colors = CardColors(
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.background,
             contentColor = Color.Gray,
-            disabledContainerColor = Color.White,
+            disabledContainerColor = MaterialTheme.colorScheme.background,
             disabledContentColor = Color.Gray
         )
     ) {

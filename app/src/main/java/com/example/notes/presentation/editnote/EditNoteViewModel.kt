@@ -55,7 +55,7 @@ class EditNoteViewModel @Inject constructor(
 
     private fun loadNote(id: Int) {
         viewModelScope.launch {
-            dataSource.getNoteById(id = id)?.let { note ->
+            dataSource.getNoteById(id)?.let { note ->
                 _uiState.value = EditNoteUiState(
                     title = note.title,
                     content = note.content,

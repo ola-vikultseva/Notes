@@ -1,7 +1,6 @@
 package com.example.notes.presentation.editnote
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,7 +56,6 @@ fun EditNoteScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
-                .background(Color.White)
         ) {
             BasicTextField(
                 value = uiState.title,
@@ -78,7 +76,6 @@ fun EditNoteScreen(
                 value = uiState.content,
                 onValueChange = { viewModel.updateContent(it) },
                 textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.Gray),
-                singleLine = true,
                 decorationBox = { innerTextField ->
                     if (uiState.content.isEmpty()) {
                         Text(

@@ -24,13 +24,13 @@ class NoteListViewModel @Inject constructor(
 
     fun togglePin(noteId: Int) {
         viewModelScope.launch {
-            val note = uiState.value.notes.first { it.id == noteId }
+            val note = uiState.value.notes.find { it.id == noteId } ?: return@launch
             val updatedNote = note.copy(isPinned = !note.isPinned)
             dataSource.saveNote(updatedNote)
         }
     }
 
-    fun onDeleteNote(noteId: Int) {
+    fun deleteNote(noteId: Int) {
         viewModelScope.launch {
             dataSource.deleteNote(noteId)
         }
