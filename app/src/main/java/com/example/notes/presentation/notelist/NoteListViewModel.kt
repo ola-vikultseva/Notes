@@ -26,7 +26,7 @@ class NoteListViewModel @Inject constructor(
         viewModelScope.launch {
             val note = uiState.value.notes.first { it.id == noteId }
             val updatedNote = note.copy(isPinned = !note.isPinned)
-            dataSource.updateNote(updatedNote)
+            dataSource.saveNote(updatedNote)
         }
     }
 

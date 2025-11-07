@@ -42,16 +42,12 @@ class EditNoteViewModel @Inject constructor(
             when {
                 uiState.hasTitleOrContent() -> {
                     val note = buildNoteFromUiState(uiState)
-                    dataSource.updateNote(note)
+                    dataSource.saveNote(note)
                 }
-
                 noteId != null -> {
                     dataSource.deleteNote(noteId)
                 }
-
-                else -> {
-
-                }
+                else -> {}
             }
             onSaved()
         }
