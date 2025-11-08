@@ -36,6 +36,11 @@ class EditNoteViewModel @Inject constructor(
         _uiState.update { it.copy(content = content) }
     }
 
+    fun togglePin() {
+        val isPinned = _uiState.value.isPinned
+        _uiState.update { it.copy(isPinned = !isPinned) }
+    }
+
     fun saveAndExit(onSaved: () -> Unit) {
         viewModelScope.launch {
             val uiState = _uiState.value

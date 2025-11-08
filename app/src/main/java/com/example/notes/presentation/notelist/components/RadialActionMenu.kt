@@ -7,10 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -20,10 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.example.notes.R
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -58,17 +55,17 @@ fun RadialActionMenu(
             contentAlignment = Alignment.Center
         ) {
             ActionButton(
-                icon = Icons.Default.PushPin,
+                painterResId = R.drawable.ic_pin_angle,
                 angle = 250f,
                 onClick = onPinClick
             )
             ActionButton(
-                icon = Icons.Default.Edit,
+                painterResId = R.drawable.ic_edit,
                 angle = 295f,
                 onClick = onEditClick
             )
             ActionButton(
-                icon = Icons.Default.Delete,
+                painterResId = R.drawable.ic_delete,
                 angle = 340f,
                 onClick = onDeleteClick
             )
@@ -78,7 +75,7 @@ fun RadialActionMenu(
 
 @Composable
 fun ActionButton(
-    icon: ImageVector,
+    painterResId: Int,
     angle: Float,
     onClick: () -> Unit
 ) {
@@ -102,7 +99,7 @@ fun ActionButton(
             )
         ) {
             Icon(
-                imageVector = icon,
+                painter = painterResource(painterResId),
                 contentDescription = null
             )
         }

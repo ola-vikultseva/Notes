@@ -7,6 +7,7 @@ import com.example.notes.presentation.notelist.model.NoteListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -38,13 +39,18 @@ class NoteListViewModel @Inject constructor(
 
     private fun observeNotesData() {
         viewModelScope.launch {
-            dataSource.notesDataFlow.collect { notesData ->
-                _uiState.value = NoteListUiState(
-                    selectedCategoryId = null,
-                    categories = notesData.categories,
-                    notes = notesData.notes
-                )
-            }
+            dataSource.notesDataFlow
+                .map { notesData ->
+                    val sortedNotes = notesData.notes.sortedWith(compareByDescending { it.isPinned })
+                    notesData.copy(notes = sortedNotes)
+                }
+                .collect { notesData ->
+                    _uiState.value = NoteListUiState(
+                        selectedCategoryId = null,
+                        categories = notesData.categories,
+                        notes = notesData.notes
+                    )
+                }
         }
     }
 }

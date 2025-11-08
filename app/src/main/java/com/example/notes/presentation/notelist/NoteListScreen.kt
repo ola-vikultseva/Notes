@@ -98,8 +98,8 @@ fun NoteListScreen(
                 modifier = Modifier.fillMaxSize(),
                 columns = StaggeredGridCells.Fixed(2),
                 contentPadding = PaddingValues(16.dp),
-                verticalItemSpacing = 16.dp,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                verticalItemSpacing = 8.dp,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
                     count = uiState.notes.size,
@@ -129,7 +129,10 @@ fun NoteListScreen(
         if (showMenu) {
             RadialActionMenu(
                 position = menuPosition,
-                onPinClick = { },
+                onPinClick = {
+                    viewModel.togglePin(selectedNoteId)
+                    showMenu = false
+                },
                 onEditClick = {
                     onEditNote(selectedNoteId)
                     showMenu = false
