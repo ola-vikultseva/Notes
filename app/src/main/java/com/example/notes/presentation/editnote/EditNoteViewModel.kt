@@ -60,10 +60,11 @@ class EditNoteViewModel @Inject constructor(
 
     private fun loadNote(id: Int) {
         viewModelScope.launch {
-            dataSource.getNoteById(id)?.let { note ->
+            dataSource.getNoteById(id)!!.let { note ->
                 _uiState.value = EditNoteUiState(
                     title = note.title,
                     content = note.content,
+                    categoryIds = note.categoryIds,
                     isPinned = note.isPinned
                 )
             }
@@ -75,7 +76,7 @@ class EditNoteViewModel @Inject constructor(
             id = noteId ?: generateId(),
             title = uiState.title,
             content = uiState.content,
-            categoryIds = null,
+            categoryIds = uiState.categoryIds,
             isPinned = uiState.isPinned
         )
 

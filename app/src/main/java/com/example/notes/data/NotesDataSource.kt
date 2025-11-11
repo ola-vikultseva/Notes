@@ -5,7 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.notes.domain.model.Note
-import com.example.notes.domain.model.NotesData
+import com.example.notes.domain.model.NoteCategory
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
@@ -13,49 +14,129 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class NotesDataSource @Inject constructor(
+    private val appPreferences: AppPreferences,
     private val dataStore: DataStore<Preferences>
 ) {
 
-    val notesDataFlow = dataStore.data
+    val notesFlow: Flow<List<Note>> = dataStore.data
         .map { prefs ->
             prefs[NOTES_JSON]?.let { json ->
-                Json.decodeFromString<NotesData>(json)
-            } ?: NotesData()
+                Json.decodeFromString<List<Note>>(json)
+            } ?: emptyList()
         }
 
-    suspend fun getNoteById(id: Int): Note? = notesDataFlow.first().notes.find { it.id == id }
+    val categoriesFlow = dataStore.data
+        .map { prefs ->
+            prefs[NOTE_CATEGORIES_JSON]?.let { json ->
+                Json.decodeFromString<List<NoteCategory>>(json)
+            } ?: emptyList()
+        }
+
+    suspend fun getNoteById(id: Int): Note? = notesFlow.first().find { it.id == id }
 
     suspend fun saveNote(note: Note) {
-        modifyNotesData { notesData ->
-            val isExistingNote = notesData.notes.any { it.id == note.id }
-            val updatedNotesDate = if (isExistingNote) {
-                notesData.notes.map { if (it.id == note.id) note else it }
+        dataStore.edit { prefs ->
+            val notes = prefs[NOTES_JSON]?.let { json ->
+                Json.decodeFromString<List<Note>>(json)
+            } ?: emptyList()
+            val isExistingNote = notes.any { it.id == note.id }
+            val updatedNotes = if (isExistingNote) {
+                notes.map { if (it.id == note.id) note else it }
             } else {
-                notesData.notes + note
+                notes + note
             }
-            notesData.copy(notes = updatedNotesDate)
+            prefs[NOTES_JSON] = Json.encodeToString(updatedNotes)
         }
     }
 
     suspend fun deleteNote(noteId: Int) {
-        modifyNotesData { current ->
-            current.copy(notes = current.notes.filterNot { it.id == noteId })
+        dataStore.edit { prefs ->
+            val notes = prefs[NOTES_JSON]!!.let { json ->
+                Json.decodeFromString<List<Note>>(json)
+            }
+            prefs[NOTES_JSON] = Json.encodeToString(notes.filterNot { it.id == noteId })
         }
     }
 
-    private suspend fun modifyNotesData(
-        transform: (NotesData) -> NotesData
-    ) {
-        dataStore.edit { prefs ->
-            val current = prefs[NOTES_JSON]?.let { json ->
-                Json.decodeFromString<NotesData>(json)
-            } ?: NotesData()
-            val updated = transform(current)
-            prefs[NOTES_JSON] = Json.encodeToString(updated)
+    suspend fun setupSampleDataIfFirstRun() {
+        if (appPreferences.isFirstLaunch()) {
+            val notes = listOf(
+                Note(
+                    id = 1,
+                    title = "A Moment of Calm",
+                    content = "This morning, the world was quiet. The sky was painted in soft pink and gold. I took a deep breath and felt peaceful. Sometimes, small moments like this are the most magical.",
+                    categoryIds = listOf(1),
+                    isPinned = false
+                ),
+                Note(
+                    id = 2,
+                    title = "Unexpected Joy",
+                    content = "A cat jumped onto my windowsill and stared at me. I smiled for no reason—sometimes happiness finds you in the smallest ways.",
+                    categoryIds = listOf(1),
+                    isPinned = false
+                ),
+                Note(
+                    id = 3,
+                    title = "Cozy Winter Reads",
+                    content = "The Night Circus” by Erin Morgenstern – a beautifully written fantasy full of mystery, love, and winter charm.\n“Little Women” by Louisa May Alcott – a heartwarming classic about family, dreams, and growing up.\n“The Midnight Library” by Matt Haig – perfect for reflection as the year ends — what if you could live all your possible lives?",
+                    categoryIds = listOf(3),
+                    isPinned = false
+                ),
+                Note(
+                    id = 4,
+                    title = "Reading List",
+                    content = "Next books: 'Dune' by Frank Herbert, 'Atomic Habits' by James Clear, 'Project Hail Mary' by Andy Weir.",
+                    categoryIds = listOf(3),
+                    isPinned = false
+                ),
+                Note(
+                    id = 5,
+                    title = "Pancake Recipe",
+                    content = "Ingredients: 1 cup flour, 1 egg, 1 cup milk, 1 tbsp sugar. Mix all, fry on a lightly oiled pan until golden. Serve with honey or jam.",
+                    categoryIds = listOf(2),
+                    isPinned = false
+                ),
+                Note(
+                    id = 6,
+                    title = "Personal Thought",
+                    content = "Taking a short walk clears my mind better than coffee sometimes.",
+                    categoryIds = listOf(1),
+                    isPinned = false
+                ),
+                Note(
+                    id = 7,
+                    title = "Quick Reminder",
+                    content = "Buy milk and batteries on the way home.",
+                    categoryIds = null,
+                    isPinned = true
+                )
+            )
+            dataStore.edit { prefs ->
+                prefs[NOTES_JSON] = Json.encodeToString(notes)
+            }
+            val categories = listOf(
+                NoteCategory(
+                    id = 1,
+                    name = "Thoughts"
+                ),
+                NoteCategory(
+                    id = 2,
+                    name = "Recipes"
+                ),
+                NoteCategory(
+                    id = 3,
+                    name = "Books"
+                )
+            )
+            dataStore.edit { prefs ->
+                prefs[NOTE_CATEGORIES_JSON] = Json.encodeToString(categories)
+            }
+            appPreferences.setFirstLaunchCompleted()
         }
     }
 
     companion object {
         private val NOTES_JSON = stringPreferencesKey("notes_json")
+        private val NOTE_CATEGORIES_JSON = stringPreferencesKey("note_categories_json")
     }
 }

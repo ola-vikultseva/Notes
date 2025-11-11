@@ -6,15 +6,19 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -25,6 +29,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,43 +85,55 @@ fun NoteListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Row(
+            LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                FloatingActionButton(
-                    onClick = { onEditNote(selectedNoteId) },
-                    shape = CircleShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    elevation = FloatingActionButtonDefaults.elevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp,
-                        focusedElevation = 0.dp,
-                        hoveredElevation = 0.dp
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null
-                    )
+                item {
+                    FloatingActionButton(
+                        onClick = { onEditNote(selectedNoteId) },
+                        shape = CircleShape,
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                            focusedElevation = 0.dp,
+                            hoveredElevation = 0.dp
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null
+                        )
+                    }
                 }
-//                uiState.categories.forEach { category ->
-//                    Spacer(modifier = Modifier.width(16.dp))
-//                    Button(
-//                        onClick = { },
-//                        colors = ButtonColors(
-//                            containerColor = MaterialTheme.colorScheme.primary,
-//                            contentColor = MaterialTheme.colorScheme.onPrimary,
-//                            disabledContainerColor = MaterialTheme.colorScheme.primary,
-//                            disabledContentColor = MaterialTheme.colorScheme.onPrimary
-//                        ),
-//                        modifier = Modifier.height(56.dp)
-//                    ) {
-//                        Text(text = category.name)
-//                    }
-//                }
+                items(uiState.categories) { category ->
+                    val selectedIds = uiState.selectedCategoryIds.orEmpty()
+                    val isSelected = category.id in selectedIds
+                    val onCategoryClick = {
+                        val updatedSelection = if (!isSelected) {
+                            selectedIds + category.id
+                        } else {
+                            selectedIds - category.id
+                        }
+                        viewModel.filterNotesByCategories(updatedSelection.ifEmpty { null })
+                    }
+                    Button(
+                        onClick = { onCategoryClick() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                            disabledContentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary,
+                        ),
+                        modifier = Modifier.height(56.dp)
+                    ) {
+                        Text(text = category.name)
+                    }
+                }
             }
             LazyVerticalStaggeredGrid(
                 modifier = Modifier.fillMaxSize(),

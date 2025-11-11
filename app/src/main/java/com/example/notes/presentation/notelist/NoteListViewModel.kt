@@ -1,5 +1,6 @@
 package com.example.notes.presentation.notelist
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notes.data.NotesDataSource
@@ -19,29 +20,43 @@ class NoteListViewModel @Inject constructor(
     private val dataSource: NotesDataSource
 ) : ViewModel() {
 
+    private val selectedCategoryIds = MutableStateFlow<List<Int>?>(null)
+
     private val deletedNoteId = MutableStateFlow<Int?>(null)
     private var deletedNote: Note? = null
 
     val uiState: StateFlow<NoteListUiState> = combine(
-        dataSource.notesDataFlow,
+        selectedCategoryIds,
+        dataSource.categoriesFlow,
+        dataSource.notesFlow,
         deletedNoteId
-    ) { notesData, deletedNoteId ->
-        val filteredNotes = if (deletedNoteId != null) {
-            notesData.notes.filterNot { it.id == deletedNoteId }
-        } else {
-            notesData.notes
-        }
-        val sortedNotes = filteredNotes.sortedByDescending { it.isPinned }
+    ) { selectedCategoryIds, categories, notes, deletedNoteId ->
+        val visibleNotes = notes
+            .filter { note ->
+                Log.d("Test", "1 operator - $note")
+                selectedCategoryIds?.let { ids ->
+                    note.categoryIds?.containsAll(ids) == true
+                } ?: true
+            }
+            .filterNot { note ->
+                Log.d("Test", "2 operator - $note")
+                deletedNoteId != null && note.id == deletedNoteId
+            }
+            .sortedByDescending { it.isPinned }
         NoteListUiState(
-            selectedCategoryId = null,
-            categories = notesData.categories,
-            notes = sortedNotes
+            selectedCategoryIds = selectedCategoryIds,
+            categories = categories,
+            notes = visibleNotes
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = NoteListUiState()
     )
+
+    fun filterNotesByCategories(categoryIds: List<Int>?) {
+        selectedCategoryIds.value = categoryIds
+    }
 
     fun togglePin(noteId: Int) {
         viewModelScope.launch {
