@@ -14,10 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NotesTheme(
-                darkTheme = false,
-                dynamicColor = false
-            ) {
+            NotesTheme(false) {
                 AppNavGraph()
             }
         }

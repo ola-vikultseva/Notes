@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -41,9 +40,8 @@ import com.example.notes.domain.model.Note
 fun NoteCard(
     note: Note,
     onClick: (Offset, Note) -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
-
     var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     DisposableEffect(Unit) {
@@ -68,12 +66,15 @@ fun NoteCard(
                 )
             },
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, Color.LightGray),
+        border = BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline,
+        ),
         colors = CardColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = Color.Gray,
-            disabledContainerColor = MaterialTheme.colorScheme.background,
-            disabledContentColor = Color.Gray
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface,
         )
     ) {
         Column(modifier = Modifier.padding(14.dp)) {

@@ -1,10 +1,8 @@
 package com.example.notes.presentation.notelist
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notes.data.NotesDataSource
-import com.example.notes.domain.model.Note
 import com.example.notes.presentation.notelist.model.NoteListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,75 +11,99 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
-    private val dataSource: NotesDataSource
+    private val dataSource: NotesDataSource,
 ) : ViewModel() {
-
     private val selectedCategoryIds = MutableStateFlow<List<Int>?>(null)
-
-    private val deletedNoteId = MutableStateFlow<Int?>(null)
-    private var deletedNote: Note? = null
+    private val pendingDeletionNoteId = MutableStateFlow<Int?>(null)
+    private val isSnackbarVisible = MutableStateFlow(false)
+    private val pendingDeletionMutex = Mutex()
 
     val uiState: StateFlow<NoteListUiState> = combine(
         selectedCategoryIds,
         dataSource.categoriesFlow,
         dataSource.notesFlow,
-        deletedNoteId
-    ) { selectedCategoryIds, categories, notes, deletedNoteId ->
-        val visibleNotes = notes
+        pendingDeletionNoteId,
+        isSnackbarVisible
+    ) { selectedCategoryIds, categories, notes, pendingDeletionNoteId, isSnackbarVisible ->
+        val filteredNotes = notes
             .filter { note ->
-                Log.d("Test", "1 operator - $note")
                 selectedCategoryIds?.let { ids ->
                     note.categoryIds?.containsAll(ids) == true
                 } ?: true
             }
             .filterNot { note ->
-                Log.d("Test", "2 operator - $note")
-                deletedNoteId != null && note.id == deletedNoteId
+                pendingDeletionNoteId != null && note.id == pendingDeletionNoteId
             }
             .sortedByDescending { it.isPinned }
         NoteListUiState(
             selectedCategoryIds = selectedCategoryIds,
             categories = categories,
-            notes = visibleNotes
+            notes = filteredNotes,
+            isSnackbarVisible = isSnackbarVisible
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = NoteListUiState()
-    )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = NoteListUiState()
+        )
 
-    fun filterNotesByCategories(categoryIds: List<Int>?) {
+    fun onCategoryFilterChanged(categoryIds: List<Int>?) {
+        setCategoryFilter(categoryIds)
+    }
+
+    fun onPinToggleClick(noteId: Int) {
+        viewModelScope.launch {
+            toggleNotePin(noteId)
+        }
+    }
+
+    fun onDeleteNoteClick(noteId: Int) {
+        viewModelScope.launch {
+            pendingDeletionMutex.withLock {
+                pendingDeletionNoteId.value = noteId
+                isSnackbarVisible.value = true
+            }
+        }
+    }
+
+    fun onUndoDeleteClick() {
+        isSnackbarVisible.value = false
+        cancelPendingDeletion()
+    }
+
+    fun onSnackbarDismissed() {
+        viewModelScope.launch {
+            pendingDeletionMutex.withLock {
+                isSnackbarVisible.value = false
+                finalizePendingDeletion()
+            }
+        }
+    }
+
+    private fun setCategoryFilter(categoryIds: List<Int>?) {
         selectedCategoryIds.value = categoryIds
     }
 
-    fun togglePin(noteId: Int) {
-        viewModelScope.launch {
-            val note = uiState.value.notes.find { it.id == noteId } ?: return@launch
-            dataSource.saveNote(note.copy(isPinned = !note.isPinned))
-        }
+    private suspend fun toggleNotePin(noteId: Int) {
+        val note = uiState.value.notes.find { it.id == noteId } ?: return
+        val updatedNote = note.copy(isPinned = !note.isPinned)
+        dataSource.saveNote(updatedNote)
     }
 
-    fun deleteNote(noteId: Int) {
-        deletedNote = uiState.value.notes.find { it.id == noteId }
-        deletedNoteId.value = noteId
+    private fun cancelPendingDeletion() {
+        pendingDeletionNoteId.value = null
     }
 
-    fun undoDelete() {
-        deletedNoteId.value = null
-        deletedNote = null
-    }
-
-    fun confirmDeletion() {
-        viewModelScope.launch {
-            deletedNoteId.value?.let {
-                dataSource.deleteNote(it)
-                deletedNoteId.value = null
-                deletedNote = null
-            }
-        }
+    private suspend fun finalizePendingDeletion() {
+        val noteId = pendingDeletionNoteId.value ?: return
+        dataSource.deleteNote(noteId)
+        pendingDeletionNoteId.value = null
     }
 }
